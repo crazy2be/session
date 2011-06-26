@@ -5,10 +5,6 @@ Summary
 -------
 A simple package that allows persistent server-side storage of session settings. Typical usage is just
 
-	s := session.Get(c, r)
-	s.Get("somekey")
-	s.Set("somekey", "somevalue")
-
 Install:
 
 	goinstall github.com/crazy2be/session
@@ -16,6 +12,12 @@ Install:
 Import:
 
 	import "github.com/crazy2be/session"
+
+Use:
+
+	s := session.Get(c, r)
+	s.Get("somekey")
+	s.Set("somekey", "somevalue")
 
 Functions
 ---------
