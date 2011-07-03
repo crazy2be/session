@@ -79,18 +79,7 @@ func Generate() (s *Session) {
 	return
 }
 
-// Loads a session from disk with the given ID. Returns an error if the session does not exist on the server, or if the file cannot be opened.
-func Load(id int64) (s* Session, err os.Error) {
-	filename := "data/shared/sessions/" + strconv.Itoa64(s.ID)
-	
-	s.settings, err = ini.Load(filename)
-	if err != nil {
-		return
-	}
-	
-	return
-}
-
+// Sets a key in the map, then saves the session file.
 func (s *Session) Set(name, value string) {
 	s.settings[name] = value
 	s.updated = true
@@ -113,6 +102,18 @@ func (s *Session) AttachTo(c http.ResponseWriter) {
 	// TODO: Should eventually be setting an expiration date on this...
 	header := c.Header()
 	header["Set-Cookie"] = append(header["Set-Cookie"], "Sessionid="+strconv.Itoa64(s.ID)+"; path=/")
+}
+
+// Loads a session from disk with the given ID. Returns an error if the session does not exist on the server, or if the file cannot be opened.
+func Load(id int64) (s* Session, err os.Error) {
+	filename := "data/shared/sessions/" + strconv.Itoa64(s.ID)
+	
+	s.settings, err = ini.Load(filename)
+	if err != nil {
+		return
+	}
+	
+	return
 }
 
 // Forces the session to be saved to disk. Note that the sessions are saved to disk on each change currently, since there are very few changes.
