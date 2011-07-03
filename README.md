@@ -1,7 +1,7 @@
 Session Library
 ===============
 
-A simple package that allows persistent server-side storage of session settings. Typical usage is just
+A simple package that allows persistent server-side storage of session-associated settings.
 
 Install:
 --------
