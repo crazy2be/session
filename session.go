@@ -106,6 +106,7 @@ func (s *Session) AttachTo(c http.ResponseWriter) {
 
 // Loads a session from disk with the given ID. Returns an error if the session does not exist on the server, or if the file cannot be opened.
 func Load(id int64) (s* Session, err os.Error) {
+	s = new(Session)
 	filename := "data/shared/sessions/" + strconv.Itoa64(id)
 	
 	s.settings, err = ini.Load(filename)
