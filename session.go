@@ -5,14 +5,15 @@
 package session
 
 import (
-	"strconv"
-	"http"
-	"time"
+	"errors"
 	"fmt"
+	"net/http"
 	"os"
+	"strconv"
+	"time"
 	// Local Imports
-	"github.com/crazy2be/ini"
 	"github.com/crazy2be/httputil"
+	"github.com/crazy2be/ini"
 )
 
 // The lastID given out. Since all IDs are assigned in numeric order, this should ensure there are no collisions.
@@ -20,9 +21,9 @@ var lastID int64
 
 // Session represents all information associated with a user's session.
 type Session struct {
-	ID int64
+	ID       int64
 	settings map[string]string
-	updated bool
+	updated  bool
 }
 
 // Convieniance function to get the session object for a request based on the
@@ -34,22 +35,22 @@ func Get(c http.ResponseWriter, r *http.Request) (s *Session) {
 	}
 	s = Generate()
 	s.AttachTo(c)
-	
+
 	return
 }
 
 // Same as above, but only gets a session if one exists, and does not attempt to create one.
-func GetExisting(r *http.Request) (s *Session, e os.Error) {
+func GetExisting(r *http.Request) (s *Session, e error) {
 	cookie := httputil.FindCookie(r, "sessionid")
-	
+
 	if cookie == nil {
-		e = os.NewError("No sessionid found!")
+		e = errors.New("No sessionid found!")
 		fmt.Println(e)
 		return
 	}
-	
+
 	sid := cookie.Value
-	id, e := strconv.Atoi64(sid)
+	id, e := strconv.ParseInt(sid, 10, 64)
 	s, e = Load(id)
 	return
 }
@@ -66,16 +67,16 @@ func NewSession() (s *Session) {
 func Generate() (s *Session) {
 	s = NewSession()
 	// TODO: Generate some sort of hash for the ID, rather than an int. The int would theoretically be fairly easy to guess.
-	idseed := time.Nanoseconds()
+	idseed := time.Now()
 	// Prevent two requests during the same nanosecond from getting duplicate
 	// sessionids.
 	if idseed == lastID {
 		idseed++
 	}
 	lastID = idseed
-	
+
 	s.ID = idseed
-	
+
 	return
 }
 
@@ -101,25 +102,25 @@ func (s *Session) GetMap() map[string]string {
 func (s *Session) AttachTo(c http.ResponseWriter) {
 	// TODO: Should eventually be setting an expiration date on this...
 	header := c.Header()
-	header["Set-Cookie"] = append(header["Set-Cookie"], "Sessionid="+strconv.Itoa64(s.ID)+"; path=/")
+	header["Set-Cookie"] = append(header["Set-Cookie"], "Sessionid="+strconv.FormatInt(s.ID, 10)+"; path=/")
 }
 
 // Loads a session from disk with the given ID. Returns an error if the session does not exist on the server, or if the file cannot be opened.
-func Load(id int64) (s* Session, err os.Error) {
+func Load(id int64) (s *Session, err error) {
 	s = new(Session)
-	filename := "data/shared/sessions/" + strconv.Itoa64(id)
-	
+	filename := "data/shared/sessions/" + strconv.FormatInt(id, 10)
+
 	s.settings, err = ini.Load(filename)
 	if err != nil {
 		return
 	}
-	
+
 	return
 }
 
 // Forces the session to be saved to disk. Note that the sessions are saved to disk on each change currently, since there are very few changes.
-func (s* Session) Save() (err os.Error) {
-	filename := "data/shared/sessions/" + strconv.Itoa64(s.ID)
+func (s *Session) Save() (err error) {
+	filename := "data/shared/sessions/" + strconv.FormatInt(s.ID, 10)
 	fmt.Println(filename)
 	err = ini.Save(filename, s.settings)
 	if err != nil {
