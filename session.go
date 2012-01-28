@@ -67,7 +67,7 @@ func NewSession() (s *Session) {
 func Generate() (s *Session) {
 	s = NewSession()
 	// TODO: Generate some sort of hash for the ID, rather than an int. The int would theoretically be fairly easy to guess.
-	idseed := time.Now()
+	idseed := time.Now().UnixNano()
 	// Prevent two requests during the same nanosecond from getting duplicate
 	// sessionids.
 	if idseed == lastID {
